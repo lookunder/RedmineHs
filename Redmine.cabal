@@ -2,24 +2,13 @@ name: Redmine
 version: 0.0.1
 cabal-version: >=1.2
 build-type: Simple
-license: AllRightsReserved
-license-file: ""
+license: MIT
+license-file: "LICENSE"
 maintainer: charles.stpierre@gmail.com
-synopsis: Librarie pour accéder aux services REST Redmine
+synopsis: Library to access Redmine's REST services
 description: http://www.redmine.org/projects/redmine/wiki/Rest_api
 author: Charles St-Pierre
 data-dir: ""
-
-executable RedmineApp
-    build-depends: QuickCheck -any, base -any, old-locale -any,
-                   time -any, old-time -any, bytestring -any, http-conduit -any,
-                   aeson -any, HTTP -any, network -any,
-                   transformers -any, containers, http-client, http-client-tls,
-                   resourcet, connection, MaybeT
-    main-is: Main.hs
-    buildable: True
-    hs-source-dirs: src
-    other-modules: Main
 
 Library
     build-depends: QuickCheck -any, base -any, old-locale -any,
