@@ -11,8 +11,7 @@ module Redmine.Get ( getTimeEntries
                    , getUser
                    , expandOptions
                    , increaseQueryRange
-                   , MaybeIO
-                   , runMaybeIO
+                   , MaybeIO (..)
                    ) where
 
 import Data.Aeson
@@ -31,7 +30,7 @@ import Network
 import Network.Connection (TLSSettings (..))
 import Network.HTTP.Conduit
 import Network.HTTP.Client.TLS
-import Network.HTTP.Client (defaultManagerSettings)
+import Network.HTTP.Client.Conduit (defaultManagerSettings)
 import Data.Time.Format     (parseTime)
 import Data.Time.Clock      (UTCTime)
 import System.Locale        (defaultTimeLocale)
@@ -39,7 +38,7 @@ import Control.Monad        (liftM)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Maybe
 import Control.Monad.Trans.Resource
---import GHC.Generics
+import Data.String.Utils
 import Debug.Trace
 
 -- FIXME : Change IO Maybe to MaybeIO
@@ -56,11 +55,11 @@ instance Monad MaybeIO where
         where a = runMaybeIO a'
               b = runMaybeIO . b'
 
---instance MonadIO MaybeIO where
---    liftIO x = MaybeIO $ x >>= return . Just
-
 parseRHTime :: String -> Maybe UTCTime
 parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
+
+fixEOL :: String -> String
+fixEOL = (replace "\\n" "\n") . (replace "\\r\\n" "\n")
 
 parseShortTime :: String -> Maybe UTCTime
 parseShortTime = parseTime defaultTimeLocale "%F"
@@ -71,12 +70,9 @@ queryRedmine mng req = do
           let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing
           response  <- withManagerSettings settings $ httpLbs request
           return $ responseBody response
-          --withManager $ \manager -> do
-          --    response <- httpLbs request manager
-          --    return $ responseBody response
 
 creerRqt :: RedmineMng -> S.ByteString -> IO Request
-creerRqt (RedmineMng h) r                            = parseUrl $ S8.unpack (h `S.append` r)
+creerRqt (RedmineMng h) r                            = parseUrl $ S8.unpack (h <> r)
 creerRqt (RedmineMngWithProxy h u p) r               = fmap (addProxy u p) (creerRqt (RedmineMng h) r)
 creerRqt (RedmineMngWithAuth h l pass) r             = fmap (applyBasicAuth l pass) (creerRqt (RedmineMng h) r)
 creerRqt (RedmineMngWithAuthAndProxy h l pass u p) r = fmap (applyBasicAuth l pass) (creerRqt (RedmineMngWithProxy h u p) r)
@@ -85,7 +81,7 @@ type ParamRest = Map.Map S.ByteString S.ByteString
 
 -- Remplace par urlEncodedBody
 expandOptions :: ParamRest -> S.ByteString
-expandOptions = Map.foldrWithKey (\k a res -> res `S.append` k `S.append` "=" `S.append` a `S.append` "&") "?"
+expandOptions = Map.foldrWithKey (\k a res -> res <> k <> "=" <> a <> "&") "?"
 
 bsAInt :: S.ByteString -> Int
 bsAInt = read . S8.unpack
@@ -102,9 +98,9 @@ queryRedmineAvecOptions :: (FromJSON a, Monoid a, Collection a) =>
                            RedmineMng -> S.ByteString -> ParamRest -> Manager -> IO( Maybe a)
 queryRedmineAvecOptions redmineMng req param mng = -- MaybeIO $ withSocketsDo $
   do
-    request   <- creerRqt redmineMng (req `S.append` (expandOptions param))
-    --traceM (S8.unpack $ (req `S.append` (expandOptions param)))
-    let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing --(SockSettingsSimple "www-only-proxy.services.boeing.com" 31061)
+    request   <- creerRqt redmineMng (req <> (expandOptions param))
+    --traceM (S8.unpack $ (req <> (expandOptions param)))
+    let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing
     response  <- withManagerSettings settings $ httpLbs request
     parsedRes <- debugResult . eitherDecode . responseBody $ response
     --putStrLn $ show parsedRes
@@ -131,25 +127,26 @@ debugResult res = case res of
 runQuery :: FromJSON a => RedmineMng -> S.ByteString -> IO( Maybe a)
 runQuery mng requete = do -- withSocketsDo $ do
   toto <- queryRedmine mng requete
-  traceIO $ show toto
+  --traceIO $ show toto
   (debugResult . eitherDecode) $ toto
 
 initOpt = Map.fromList [("offset","0"), ("limit","100")]
 
 -- |The function 'getTimeEntries' fetch all the time entries.
-getTimeEntries :: RedmineMng -> MaybeIO [TimeEntry]
-getTimeEntries mng = MaybeIO $ do
+-- |They can be filtered by spenton date using spent_on=%3E%3C2013-05-01|2013-05-31
+getTimeEntries :: RedmineMng -> ParamRest -> MaybeIO [TimeEntry]
+getTimeEntries mng param = MaybeIO $ do
    mngConn <- newManager tlsManagerSettings
-   res <- queryRedmineAvecOptions mng requete initOpt mngConn
+   res <- queryRedmineAvecOptions mng requete ( Map.union param initOpt) mngConn
    return $ fmap time_entries res
    where requete = "/time_entries.json"
 
 getTimeEntriesForIssue :: RedmineMng -> Integer-> MaybeIO [TimeEntry]
 getTimeEntriesForIssue mng issueid = MaybeIO $ do
-   mngConn <- liftIO $ newManager tlsManagerSettings
+   mngConn <- newManager tlsManagerSettings
    res <- queryRedmineAvecOptions mng requete initOpt mngConn
    return $ fmap time_entries res
-   where requete = "/time_entries/" `S.append` (S8.pack $ show issueid) `S.append` ".json"
+   where requete = "/time_entries/" <> (S8.pack $ show issueid) <> ".json"
 
 getIssues :: RedmineMng -> ParamRest -> MaybeIO [Issue]
 getIssues mng param = MaybeIO $ do
@@ -160,10 +157,10 @@ getIssues mng param = MaybeIO $ do
    where requete = "/issues.json"
 
 getIssue :: RedmineMng -> Integer -> ParamRest -> MaybeIO Issue
-getIssue mng nb param = do
+getIssue mng elemId param = do
    --traceM $ S8.unpack requete
    fmap issue (MaybeIO $ runQuery mng requete)
-   where requete = "/issues/" `S.append` (S8.pack $ show nb) `S.append` ".json" `S.append` (expandOptions param)
+   where requete = "/issues/" <> (S8.pack $ show elemId) <> ".json" <> (expandOptions param)
 
 getProjects :: RedmineMng -> MaybeIO [Project]
 getProjects mng = MaybeIO $ do
@@ -173,14 +170,14 @@ getProjects mng = MaybeIO $ do
    where requete = "/projects.json"
 
 getProjectForId :: RedmineMng -> Integer -> MaybeIO Project
-getProjectForId mng projId = do
+getProjectForId mng elemId = do
    MaybeIO $ runQuery mng requete
-   where requete = (rmhost mng) `S.append` "/projects/" `S.append` (S8.pack $ show projId) `S.append` ".json"
+   where requete = (rmhost mng) <> "/projects/" <> (S8.pack $ show elemId) <> ".json"
 
 getProject :: RedmineMng -> S.ByteString -> MaybeIO Project
 getProject mng projId = do
    MaybeIO $ runQuery mng requete
-   where requete = "/projects/" `S.append` projId `S.append` ".json"
+   where requete = "/projects/" <> projId <> ".json"
 
 --Get all the versions associated to a project
 getVersions :: RedmineMng --The connection manager
@@ -188,20 +185,20 @@ getVersions :: RedmineMng --The connection manager
             -> MaybeIO [Version]
 getVersions mng proj = do
    fmap versions (MaybeIO $ runQuery mng requete)
-   where requete = "/projects/" `S.append` proj `S.append` "/versions.json"
+   where requete = "/projects/" <> proj <> "/versions.json"
 
 getVersion:: RedmineMng -> Integer -> ParamRest -> MaybeIO Version
 getVersion mng nb param = do
    --traceM $ S8.unpack requete
    fmap version (MaybeIO $ runQuery mng requete)
-   where requete = "/versions/" `S.append` (S8.pack $ show nb) `S.append` ".json" `S.append` (expandOptions param)
+   where requete = "/versions/" <> (S8.pack $ show nb) <> ".json" <> (expandOptions param)
 
 getUser :: RedmineMng -> Integer -> MaybeIO User
 getUser mng id =
-  do let requete = "/users/" `S.append` (S8.pack $ show id) `S.append` ".json"
+  do let requete = "/users/" <> (S8.pack $ show id) <> ".json"
      --putStrLn . S8.unpack $ requete
      MaybeIO $ runQuery mng requete
-    --where requete = "/users/" `S.append` (S8.pack $ show id) `S.append` ".json"
+    --where requete = "/users/" <> (S8.pack $ show id) <> ".json"
 
 instance FromJSON ObjRef where
   parseJSON (Object v) =
@@ -250,7 +247,7 @@ instance FromJSON Journal where
   parseJSON (Object v) =
     Journal <$> (v .: "id")
             <*> (v .: "user")
-            <*> (v .:? "notes" .!= "")
+            <*> liftM fixEOL (v .:? "notes" .!= "")
             <*> liftM parseRHTime (v .: "created_on")
             <*> (v .: "details")
 
