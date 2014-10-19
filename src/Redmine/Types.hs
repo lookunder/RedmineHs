@@ -3,6 +3,7 @@
 module Redmine.Types where
 
 import Data.Time.Clock      (UTCTime)
+import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit
 import Data.Monoid
 --import GHC.Generics
@@ -19,7 +20,7 @@ data Version = Version { id_Version      :: Integer
                        , desc_Version    :: String
                        , status_Version  :: String -- TODO : Change for Status
                        , sharing_Version :: String
-                       , dueDate_Version     :: Maybe UTCTime
+                       , dueDate_Version     :: Maybe Day
                        , createdOn_Version   :: Maybe UTCTime
                        , updatedOn_Version   :: Maybe UTCTime
                        } deriving (Eq, Show)
@@ -53,9 +54,9 @@ data Issue = Issue { id_Issue :: Integer
                    , fixedVersion_Issue :: ObjRef
                    , subject_Issue :: String
                    , description_Issue :: String
-                   , startDate_Issue :: Maybe UTCTime
-                   , dueDate_Issue :: Maybe UTCTime
-                   , doneRatio_Issue :: Integer
+                   , startDate_Issue :: Maybe Day
+                   , dueDate_Issue :: Maybe Day
+                   , doneRatio_Issue :: Int
                    , estimatedHours_Issue :: Maybe Float
                    , spentHours_Issue :: Maybe Float --Single issue only
                    , customFields_Issue :: Maybe [CustomField]
@@ -64,8 +65,6 @@ data Issue = Issue { id_Issue :: Integer
                    , journals_Issue :: Maybe [Journal] -- Single issue only
                    } deriving (Eq, Show)
 
---data CustomFields = CustomFields { customfields :: [CustomField] }
---                                   deriving (Eq,Show)
 
 data CustomField = CustomField { id_CF    :: Integer
                                , name_CF  :: String
@@ -145,7 +144,7 @@ data TimeEntry = TimeEntry { id_TE       :: Integer
                            , comments_TE   :: String
                            , createdOn_TE   :: Maybe UTCTime
                            , updatedOn_TE   :: Maybe UTCTime
-                           , spentOn_TE   :: Maybe UTCTime
+                           , spentOn_TE   :: Maybe Day
                            } deriving (Eq, Show)
 
 data Memberships = Memberships { memberships :: [Membership]
@@ -206,91 +205,4 @@ instance Collection ProjectsRsp where
 
 instance Collection VersionsRsp where
     longueur (VersionsRsp a) = length a
-
-{--
-class Namable a where
-    name :: a -> String
-
-instance Namable ObjRef where
-    name = name_ObjRef
-
-instance Namable Version where
-    name = name_Version
-
-instance Namable IssueStatus where
-    name = name_IssueStatus
-
-instance Namable Project where
-    name = name_Project
-
-instance Namable Tracker where
-    name = name_Tracker
-
-instance Namable Role where
-    name = name_Role
-
-
-
-
-
-class Identifiable a where
-    identity :: a -> Integer
-
-instance Identifiable ObjRef where
-    identity = id_ObjRef
-
-instance Identifiable ObjID where
-    identity = id_ObjID
-
-instance Identifiable Version where
-    identity = id_Version
-
-instance Identifiable IssueStatus where
-    identity = id_IssueStatus
-
-instance Identifiable Project where
-    identity = id_Project
-
-instance Identifiable Tracker where
-    identity = id_Tracker
-
-instance Identifiable Role where
-    identity = id_Role
-
-instance Identifiable Membership where
-    identity = id_Membership
-
-instance Identifiable Relation where
-    identity = id_Relation
-
-instance Identifiable TimeEntry where
-    identity = id_TE
-
-
-
-
-class Datable a where
-    createdOn :: a -> Maybe UTCTime
-    updatedOn :: a -> Maybe UTCTime
-
---instance Datable ModicationTimestamp where
---    createdOn (ModicationTimestamp x _) = x
---    updatedOn (ModicationTimestamp _ x) = x
-
-instance Datable TimeEntry where
-    createdOn = createdOn_TE
-    updatedOn = updatedOn_TE
-
-instance Datable Project where
-    createdOn = createdOn_Project
-    updatedOn = updatedOn_Project
-
-instance Datable Issue where
-    createdOn = createdOn_Issue
-    updatedOn = updatedOn_Issue
-
-instance Datable Version where
-    createdOn = createdOn_Version
-    updatedOn = updatedOn_Version
---}
 

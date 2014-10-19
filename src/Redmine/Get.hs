@@ -25,7 +25,7 @@ import Control.Applicative ((<$>), (<*>))
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.ByteString.Lazy as L
-import System.Time
+--import System.Time
 import Network
 import Network.Connection (TLSSettings (..))
 import Network.HTTP.Conduit
@@ -33,6 +33,7 @@ import Network.HTTP.Client.TLS
 import Network.HTTP.Client.Conduit (defaultManagerSettings)
 import Data.Time.Format     (parseTime)
 import Data.Time.Clock      (UTCTime)
+import Data.Time.Calendar (Day)
 import System.Locale        (defaultTimeLocale)
 import Control.Monad        (liftM)
 import Control.Monad.IO.Class (liftIO)
@@ -61,7 +62,7 @@ parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
 fixEOL :: String -> String
 fixEOL = (replace "\\n" "\n") . (replace "\\r\\n" "\n")
 
-parseShortTime :: String -> Maybe UTCTime
+parseShortTime :: String -> Maybe Day
 parseShortTime = parseTime defaultTimeLocale "%F"
 
 queryRedmine :: RedmineMng -> S.ByteString -> IO L.ByteString
@@ -164,7 +165,8 @@ getIssue mng elemId param = do
 
 getProjects :: RedmineMng -> MaybeIO [Project]
 getProjects mng = MaybeIO $ do
-   mngConn <- liftIO $ newManager tlsManagerSettings
+--getProjects mng = MaybeT $ do
+   mngConn <- newManager tlsManagerSettings
    res <- queryRedmineAvecOptions mng requete initOpt mngConn
    return $ fmap projects res
    where requete = "/projects.json"
