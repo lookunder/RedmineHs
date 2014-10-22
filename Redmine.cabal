@@ -14,8 +14,8 @@ Library
     build-depends: QuickCheck -any, base -any, old-locale -any,
                    time -any, old-time -any, bytestring -any, http-conduit >= 2.1.0,
                    aeson -any, HTTP -any, network -any,
-                   transformers -any, containers, http-client-tls,
-                   resourcet, connection, MaybeT, MissingH
+                   transformers, containers, http-client-tls,
+                   resourcet, connection, MissingH
     exposed-modules: Redmine.Types, Redmine.Manager, Redmine.Get
     buildable: True
     hs-source-dirs: src
