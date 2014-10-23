@@ -6,7 +6,10 @@ import Data.Time.Clock      (UTCTime)
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit
 import Data.Monoid
---import GHC.Generics
+import Data.Typeable
+import Data.Data
+import GHC.Generics
+import Data.Aeson
 
 data Status = Closed | Open deriving (Eq, Show)
 
@@ -23,24 +26,13 @@ data Version = Version { id_Version      :: Integer
                        , dueDate_Version     :: Maybe Day
                        , createdOn_Version   :: Maybe UTCTime
                        , updatedOn_Version   :: Maybe UTCTime
-                       } deriving (Eq, Show)
+                       } deriving (Eq, Show, Generic)
 --ajouter offset total_cout et limit
 data IssuesRsp = IssuesRsp { issues :: [Issue] } deriving (Eq,Show)
 
 --data Parent = Parent { parent :: ObjID } deriving (Eq,Show)
 
-{--
-
-    children
-    attachments
-    relations
-    changesets
-    journals - See Issue journals for more information.
-    watchers - Since 2.3.0
-
---}
-
-data IssueRsp = IssueRsp { issue :: Issue } deriving (Eq,Show)
+data IssueRsp = IssueRsp { issue :: Issue } deriving (Eq,Show, Generic)
 
 data Issue = Issue { id_Issue :: Integer
                    , project_Issue :: ObjRef
@@ -63,17 +55,41 @@ data Issue = Issue { id_Issue :: Integer
                    , createdOn_Issue   :: Maybe UTCTime
                    , updatedOn_Issue   :: Maybe UTCTime
                    , journals_Issue :: Maybe [Journal] -- Single issue only
+                   , attachements_Issue :: Maybe [Attachement]
+                   , changeSets_Issue :: Maybe [ChangeSet]
+                   , watchers_Issue :: Maybe [Watcher]
+                   , relations_Issue :: Maybe [Relation]
+                   , children_Issue :: Maybe [Child]
                    } deriving (Eq, Show)
 
+data ChangeSet = ChangeSet { revision_ChangeSet :: String
+                           , user_ChangeSet :: ObjRef
+                           , comments_ChangeSet :: String
+                           , committedOn_ChangeSet :: UTCTime
+                           } deriving (Eq, Show)
+
+data Watcher = Watcher { id_Watcher :: Integer
+                       , name_Watcher :: String
+                       } deriving (Eq, Show)
+
+data Child = Child { id_Child :: Integer
+                   , tracker_Child :: ObjRef
+                   , subject_Tracker :: String
+                   } deriving (Eq, Show, Generic)
 
 data CustomField = CustomField { id_CF    :: Integer
                                , name_CF  :: String
                                , value_CF :: String
                                } deriving (Eq,Show)
 
-data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: String } deriving (Eq, Show)
+data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: String } deriving (Eq, Show, Generic)
 
-data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show)
+data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show, Generic)
+
+
+
+
+instance ToJSON ObjID
 
 data IssueStatuses = IssueStatuses { issue_statuses :: [IssueStatus] }
                                      deriving (Eq,Show)
@@ -96,6 +112,7 @@ data Project = Project { id_Project:: Integer
                        , createdOn_Project   :: Maybe UTCTime
                        , updatedOn_Project   :: Maybe UTCTime
                        } deriving (Eq, Show)
+
 
 data UsersRsp = UsersRsp { users :: [User] } deriving (Eq,Show)
 
@@ -131,6 +148,17 @@ data Journal = Journal { id_Journal :: Integer
                        } deriving (Eq, Show)
 
 
+data Attachement = Attachement { id_Attachement :: Integer
+                               , filename_Attachement :: String
+                               , filesize_Attachement :: Integer
+                               , contentType_Attachement :: String
+                               , description_Attachement :: String
+                               , contentUrl_Attachement :: String
+                               , authorName_Attachement :: ObjRef
+                               , createdOn_Attachement :: UTCTime
+                               } deriving (Eq, Show)
+
+
 data TimeEntriesRsp = TimeEntriesRsp { time_entries :: [TimeEntry] } deriving (Eq,Show)
 
 data TimeEntryRsp = TimeEntryRsp { time_entry :: TimeEntry } deriving (Eq,Show)
@@ -145,7 +173,7 @@ data TimeEntry = TimeEntry { id_TE       :: Integer
                            , createdOn_TE   :: Maybe UTCTime
                            , updatedOn_TE   :: Maybe UTCTime
                            , spentOn_TE   :: Maybe Day
-                           } deriving (Eq, Show)
+                           } deriving (Eq, Show, Generic)
 
 data Memberships = Memberships { memberships :: [Membership]
                                } deriving (Eq,Show)
@@ -198,7 +226,6 @@ instance Collection TimeEntriesRsp where
 
 instance Collection IssuesRsp where
     longueur (IssuesRsp a) = length a
-
 
 instance Collection ProjectsRsp where
     longueur (ProjectsRsp a) = length a

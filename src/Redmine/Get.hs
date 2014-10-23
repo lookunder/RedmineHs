@@ -11,7 +11,6 @@ module Redmine.Get ( getTimeEntries
                    , getUser
                    , expandOptions
                    , increaseQueryRange
-                   --, MaybeT IO (..)
                    ) where
 
 import Data.Aeson
@@ -21,11 +20,10 @@ import qualified Data.Map as Map
 import Data.Tuple
 import Redmine.Types
 import Redmine.Manager
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>), pure)
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.ByteString.Lazy as L
---import System.Time
 import Network
 import Network.Connection (TLSSettings (..))
 import Network.HTTP.Conduit
@@ -41,6 +39,7 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Resource
 import Data.String.Utils
 import Debug.Trace
+import qualified Data.Text as T
 
 parseRHTime :: String -> Maybe UTCTime
 parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
@@ -219,6 +218,41 @@ instance FromJSON Issue where
           <*> liftM parseRHTime (v .: "created_on")
           <*> liftM parseRHTime (v .: "updated_on")
           <*> (v .:? "journals")
+          <*> (v .:? "attachements")
+          <*> (v .:? "changesets")
+          <*> (v .:? "watchers")
+          <*> (v .:? "relations")
+          <*> (v .:? "children")
+
+
+instance FromJSON Child where
+  parseJSON (Object v) =
+    Child <$> (v .: "id")
+          <*> (v .: "tracker")
+          <*> (v .: "subject")
+
+instance FromJSON Attachement where
+  parseJSON (Object v) =
+    Attachement <$> (v .: "id")
+                <*> (v .: "filename")
+                <*> (v .: "filesize")
+                <*> (v .: "content_type")
+                <*> (v .: "description")
+                <*> (v .: "content_url")
+                <*> (v .: "author_name")
+                <*> liftM (fromJust.parseRHTime) (v .: "created_on")
+
+instance FromJSON ChangeSet where
+  parseJSON (Object v) =
+    ChangeSet <$> (v .: "revision")
+              <*> (v .: "user")
+              <*> (v .: "comments")
+              <*> liftM (fromJust.parseRHTime) (v .: "committed_on")
+
+instance FromJSON Watcher where
+  parseJSON (Object v) =
+    Watcher <$> (v .: "id")
+            <*> (v .: "name")
 
 instance FromJSON CustomField where
   parseJSON (Object v) =
@@ -266,7 +300,6 @@ instance FromJSON TimeEntry where
               <*> (v .: "comments")
               <*> liftM parseRHTime (v .: "created_on")
               <*> liftM parseRHTime (v .: "updated_on")
-              --FIXME avoid parsing an empty string
               <*> liftM (parseShortTime . fromMaybe "") (v .:? "spent_on")
 
 instance FromJSON VersionsRsp where
@@ -274,6 +307,12 @@ instance FromJSON VersionsRsp where
 
 instance FromJSON VersionRsp where
   parseJSON (Object v) = VersionRsp <$> (v .: "version")
+
+instance FromJSON Day where
+    parseJSON = withText "Day" $ \t ->
+        case parseTime defaultTimeLocale "%F" (T.unpack t) of
+          Just d -> pure d
+          _      -> fail "could not parse ISO-8601 date"
 
 instance FromJSON Version where
   parseJSON (Object v) =
