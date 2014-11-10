@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric, ConstraintKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Redmine.Get ( getTimeEntries
                    , getTimeEntriesForIssue
@@ -43,9 +43,6 @@ import qualified Data.Text as T
 
 parseRHTime :: String -> Maybe UTCTime
 parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
-
---fixEOL :: T.Text -> T.Text
---fixEOL = (replace "\\n" "\n") . (replace "\\r\\n" "\n")
 
 parseShortTime :: String -> Maybe Day
 parseShortTime = parseTime defaultTimeLocale "%F"

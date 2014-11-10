@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Redmine.Types where
 
@@ -8,7 +8,6 @@ import Network.HTTP.Conduit
 import Data.Monoid
 import Data.Typeable
 import Data.Data
-import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
 
@@ -22,18 +21,18 @@ data Version = Version { id_Version      :: Integer
                        , name_Version    :: T.Text
                        , project_Version :: ObjRef
                        , desc_Version    :: T.Text
-                       , status_Version  :: T.Text -- TODO : Change for Status
+                       , status_Version  :: T.Text
                        , sharing_Version :: T.Text
                        , dueDate_Version     :: Maybe Day
                        , createdOn_Version   :: Maybe UTCTime
                        , updatedOn_Version   :: Maybe UTCTime
-                       } deriving (Eq, Show, Generic)
+                       } deriving (Eq, Show)
 --ajouter offset total_cout et limit
 data IssuesRsp = IssuesRsp { issues :: [Issue] } deriving (Eq,Show)
 
 --data Parent = Parent { parent :: ObjID } deriving (Eq,Show)
 
-data IssueRsp = IssueRsp { issue :: Issue } deriving (Eq,Show, Generic)
+data IssueRsp = IssueRsp { issue :: Issue } deriving (Eq,Show)
 
 data Issue = Issue { id_Issue :: Integer
                    , project_Issue :: ObjRef
@@ -76,16 +75,16 @@ data Watcher = Watcher { id_Watcher :: Integer
 data Child = Child { id_Child :: Integer
                    , tracker_Child :: ObjRef
                    , subject_Tracker :: T.Text
-                   } deriving (Eq, Show, Generic)
+                   } deriving (Eq, Show)
 
 data CustomField = CustomField { id_CF    :: Integer
                                , name_CF  :: T.Text
                                , value_CF :: T.Text
                                } deriving (Eq,Show)
 
-data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: T.Text } deriving (Eq, Show, Generic)
+data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: T.Text } deriving (Eq, Show)
 
-data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show, Generic)
+data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show)
 
 
 
@@ -174,7 +173,7 @@ data TimeEntry = TimeEntry { id_TE       :: Integer
                            , createdOn_TE   :: Maybe UTCTime
                            , updatedOn_TE   :: Maybe UTCTime
                            , spentOn_TE   :: Maybe Day
-                           } deriving (Eq, Show, Generic)
+                           } deriving (Eq, Show)
 
 data Memberships = Memberships { memberships :: [Membership]
                                } deriving (Eq,Show)

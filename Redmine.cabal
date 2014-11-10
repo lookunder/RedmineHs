@@ -11,7 +11,7 @@ author: Charles St-Pierre
 data-dir: ""
 
 Library
-    build-depends: QuickCheck -any, base -any, old-locale -any,
+    build-depends: base -any, old-locale -any,
                    time -any, old-time -any, bytestring -any, http-conduit >= 2.1.0,
                    aeson -any, HTTP -any, network -any, text,
                    transformers, containers, http-client-tls,
