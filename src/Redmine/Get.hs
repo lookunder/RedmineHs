@@ -44,8 +44,8 @@ import qualified Data.Text as T
 parseRHTime :: String -> Maybe UTCTime
 parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
 
-fixEOL :: String -> String
-fixEOL = (replace "\\n" "\n") . (replace "\\r\\n" "\n")
+--fixEOL :: T.Text -> T.Text
+--fixEOL = (replace "\\n" "\n") . (replace "\\r\\n" "\n")
 
 parseShortTime :: String -> Maybe Day
 parseShortTime = parseTime defaultTimeLocale "%F"
@@ -262,7 +262,7 @@ instance FromJSON Journal where
   parseJSON (Object v) =
     Journal <$> (v .: "id")
             <*> (v .: "user")
-            <*> liftM fixEOL (v .:? "notes" .!= "")
+            <*> (v .:? "notes" .!= "")
             <*> liftM parseRHTime (v .: "created_on")
             <*> (v .: "details")
 

@@ -10,6 +10,7 @@ import Data.Typeable
 import Data.Data
 import GHC.Generics
 import Data.Aeson
+import qualified Data.Text as T
 
 data Status = Closed | Open deriving (Eq, Show)
 
@@ -18,11 +19,11 @@ data VersionsRsp = VersionsRsp { versions :: [Version] } deriving (Eq,Show)
 data VersionRsp = VersionRsp { version :: Version } deriving (Eq,Show)
 
 data Version = Version { id_Version      :: Integer
-                       , name_Version    :: String
+                       , name_Version    :: T.Text
                        , project_Version :: ObjRef
-                       , desc_Version    :: String
-                       , status_Version  :: String -- TODO : Change for Status
-                       , sharing_Version :: String
+                       , desc_Version    :: T.Text
+                       , status_Version  :: T.Text -- TODO : Change for Status
+                       , sharing_Version :: T.Text
                        , dueDate_Version     :: Maybe Day
                        , createdOn_Version   :: Maybe UTCTime
                        , updatedOn_Version   :: Maybe UTCTime
@@ -44,8 +45,8 @@ data Issue = Issue { id_Issue :: Integer
                    , assignedTo_Issue :: Maybe ObjRef
                    , category_Issue :: Maybe ObjRef
                    , fixedVersion_Issue :: ObjRef
-                   , subject_Issue :: String
-                   , description_Issue :: String
+                   , subject_Issue :: T.Text
+                   , description_Issue :: T.Text
                    , startDate_Issue :: Maybe Day
                    , dueDate_Issue :: Maybe Day
                    , doneRatio_Issue :: Int
@@ -62,27 +63,27 @@ data Issue = Issue { id_Issue :: Integer
                    , children_Issue :: Maybe [Child]
                    } deriving (Eq, Show)
 
-data ChangeSet = ChangeSet { revision_ChangeSet :: String
+data ChangeSet = ChangeSet { revision_ChangeSet :: T.Text
                            , user_ChangeSet :: ObjRef
-                           , comments_ChangeSet :: String
+                           , comments_ChangeSet :: T.Text
                            , committedOn_ChangeSet :: UTCTime
                            } deriving (Eq, Show)
 
 data Watcher = Watcher { id_Watcher :: Integer
-                       , name_Watcher :: String
+                       , name_Watcher :: T.Text
                        } deriving (Eq, Show)
 
 data Child = Child { id_Child :: Integer
                    , tracker_Child :: ObjRef
-                   , subject_Tracker :: String
+                   , subject_Tracker :: T.Text
                    } deriving (Eq, Show, Generic)
 
 data CustomField = CustomField { id_CF    :: Integer
-                               , name_CF  :: String
-                               , value_CF :: String
+                               , name_CF  :: T.Text
+                               , value_CF :: T.Text
                                } deriving (Eq,Show)
 
-data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: String } deriving (Eq, Show, Generic)
+data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: T.Text } deriving (Eq, Show, Generic)
 
 data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show, Generic)
 
@@ -95,7 +96,7 @@ data IssueStatuses = IssueStatuses { issue_statuses :: [IssueStatus] }
                                      deriving (Eq,Show)
 
 data IssueStatus = IssueStatus { id_IssueStatus:: Integer
-                               , name_IssueStatus:: String
+                               , name_IssueStatus:: T.Text
                                , isDefault_IssueStatus:: Bool
                                , isClosed_IssueStatus:: Bool
                                } deriving (Eq, Show)
@@ -105,9 +106,9 @@ data ProjectsRsp = ProjectsRsp { projects :: [Project] } deriving (Eq,Show)
 data ProjectRsp = ProjectRsp { project :: Project } deriving (Eq,Show)
 
 data Project = Project { id_Project:: Integer
-                       , name_Project:: String
-                       , identifier_Project:: String
-                       , desc_Project:: String
+                       , name_Project:: T.Text
+                       , identifier_Project:: T.Text
+                       , desc_Project:: T.Text
                        , customFields_Project :: Maybe [CustomField]
                        , createdOn_Project   :: Maybe UTCTime
                        , updatedOn_Project   :: Maybe UTCTime
@@ -118,42 +119,42 @@ data UsersRsp = UsersRsp { users :: [User] } deriving (Eq,Show)
 
 data UserRsp = UserRsp { user :: User } deriving (Eq,Show)
 
-data User = User { lastname:: String
+data User = User { lastname:: T.Text
                  , createdOn_User:: Maybe UTCTime
-                 , mail:: String
+                 , mail:: T.Text
                  , r :: Maybe UTCTime
-                 , firstname:: String
+                 , firstname:: T.Text
                  , id_User:: Integer
                  } deriving (Eq, Show)
 
 data Trackers = Trackers { trackers :: [Tracker] } deriving (Eq,Show)
 
 data Tracker = Tracker { id_Tracker   :: Integer
-                       , name_Tracker :: String
+                       , name_Tracker :: T.Text
                        } deriving (Eq, Show)
 
 
-data Detail = Detail { property :: String
-                     , name_Detail :: String
-                     , old_value_Detail :: Maybe String
-                     , new_value_Detail :: String
+data Detail = Detail { property :: T.Text
+                     , name_Detail :: T.Text
+                     , old_value_Detail :: Maybe T.Text
+                     , new_value_Detail :: T.Text
                      } deriving (Eq,Show)
 
 
 data Journal = Journal { id_Journal :: Integer
                        , user_Journal :: ObjRef
-                       , notes_Journal :: String
+                       , notes_Journal :: T.Text
                        , createdOn_Journal :: Maybe UTCTime
                        , details_Journal :: Maybe [Detail]
                        } deriving (Eq, Show)
 
 
 data Attachement = Attachement { id_Attachement :: Integer
-                               , filename_Attachement :: String
+                               , filename_Attachement :: T.Text
                                , filesize_Attachement :: Integer
-                               , contentType_Attachement :: String
-                               , description_Attachement :: String
-                               , contentUrl_Attachement :: String
+                               , contentType_Attachement :: T.Text
+                               , description_Attachement :: T.Text
+                               , contentUrl_Attachement :: T.Text
                                , authorName_Attachement :: ObjRef
                                , createdOn_Attachement :: UTCTime
                                } deriving (Eq, Show)
@@ -169,7 +170,7 @@ data TimeEntry = TimeEntry { id_TE       :: Integer
                            , user_TE      :: ObjRef
                            , activity_TE   :: Maybe ObjRef
                            , hours_TE      :: Maybe Float
-                           , comments_TE   :: String
+                           , comments_TE   :: T.Text
                            , createdOn_TE   :: Maybe UTCTime
                            , updatedOn_TE   :: Maybe UTCTime
                            , spentOn_TE   :: Maybe Day
@@ -187,7 +188,7 @@ data Membership = Membership { id_Membership :: Integer
 data Roles = Roles { roles :: [Role] } deriving (Eq,Show)
 
 data Role = Role { id_Role   :: Integer
-                 , name_Role :: String
+                 , name_Role :: T.Text
                  } deriving (Eq, Show)
 
 data RelationType = Relates | Duplicates | Duplicated | Blocks | Blocked
@@ -198,7 +199,7 @@ data Relations = Relations { relations :: [Relation] } deriving (Eq,Show)
 data Relation = Relation { id_Relation :: Integer
                          , issueId_Relation:: Integer
                          , issueToId_Relation:: Integer
-                         , relationType_Relation:: String
+                         , relationType_Relation:: T.Text
                          , delay_Relation:: Maybe Integer
                          } deriving (Eq, Show)
 
