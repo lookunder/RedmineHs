@@ -86,11 +86,6 @@ data ObjRef = ObjRef { id_ObjRef:: Integer, name_ObjRef:: T.Text } deriving (Eq,
 
 data ObjID = ObjID { id_ObjID:: Integer } deriving (Eq, Show)
 
-
-
-
-instance ToJSON ObjID
-
 data IssueStatuses = IssueStatuses { issue_statuses :: [IssueStatus] }
                                      deriving (Eq,Show)
 
@@ -203,19 +198,19 @@ data Relation = Relation { id_Relation :: Integer
                          } deriving (Eq, Show)
 
 instance Monoid TimeEntriesRsp where
- mappend a b = TimeEntriesRsp ((time_entries a)++(time_entries b))
+ mappend a b = TimeEntriesRsp (time_entries a++time_entries b)
  mempty      = TimeEntriesRsp []
 
 instance Monoid IssuesRsp where
- mappend a b = IssuesRsp ((issues a)++(issues b))
+ mappend a b = IssuesRsp (issues a++issues b)
  mempty      = IssuesRsp []
 
 instance Monoid ProjectsRsp where
- mappend a b = ProjectsRsp ((projects a)++(projects b))
+ mappend a b = ProjectsRsp (projects a++projects b)
  mempty      = ProjectsRsp []
 
 instance Monoid VersionsRsp where
- mappend a b = VersionsRsp ((versions a)++(versions b))
+ mappend a b = VersionsRsp (versions a++versions b)
  mempty      = VersionsRsp []
 
 class Collection a where

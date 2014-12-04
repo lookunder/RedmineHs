@@ -1,6 +1,6 @@
 name: Redmine
 version: 0.0.1
-cabal-version: >=1.2
+cabal-version: >=1.10
 build-type: Simple
 license: MIT
 license-file: "LICENSE"
@@ -8,10 +8,17 @@ maintainer: charles.stpierre@gmail.com
 synopsis: Library to access Redmine's REST services
 description: http://www.redmine.org/projects/redmine/wiki/Rest_api
 author: Charles St-Pierre
+category: Network, Web
+homepage: https://github.com/lookunder/RedmineHs
 data-dir: ""
 
+source-repository head
+  type:     git
+  location: https://github.com/lookunder/RedmineHs.git
+
 Library
-    build-depends: base -any, old-locale -any,
+    default-language: Haskell2010
+    build-depends: base >=2 && <5, old-locale -any,
                    time -any, old-time -any, bytestring -any, http-conduit >= 2.1.0,
                    aeson -any, HTTP -any, network -any, text,
                    transformers, containers, http-client-tls,
@@ -21,7 +28,9 @@ Library
     hs-source-dirs: src
 
 test-suite test-Redmine
-    build-depends: QuickCheck -any, base -any, HUnit
+    default-language: Haskell2010
+    build-depends: base >=2 && <5, HUnit, text, MissingH, resourcet, transformers, old-locale, time,
+                   http-conduit >= 2.1.0, http-client-tls, connection, network, bytestring, aeson, containers
     type: exitcode-stdio-1.0
     main-is: testGet.hs
     buildable: True

@@ -81,7 +81,7 @@ queryRedmineAvecOptions :: (FromJSON a, Monoid a, Collection a) =>
                            RedmineMng -> S.ByteString -> ParamRest -> Manager -> IO( Maybe a)
 queryRedmineAvecOptions redmineMng req param mng = -- MaybeT IO $ withSocketsDo $
   do
-    request   <- creerRqt redmineMng (req <> (expandOptions param))
+    request   <- creerRqt redmineMng (req <> expandOptions param)
     --traceM (S8.unpack $ (req <> (expandOptions param)))
     let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing
     response  <- withManagerSettings settings $ httpLbs request
@@ -110,7 +110,7 @@ debugResult res = case res of
 runQuery :: FromJSON a => RedmineMng -> S.ByteString -> IO( Maybe a)
 runQuery mng requete = do -- withSocketsDo $ do
   toto <- queryRedmine mng requete
-  (debugResult . eitherDecode) $ toto
+  (debugResult . eitherDecode) toto
 
 initOpt = Map.fromList [("offset","0"), ("limit","100")]
 
@@ -128,7 +128,7 @@ getTimeEntriesForIssue mng issueid = MaybeT $ do
    mngConn <- newManager tlsManagerSettings
    res <- queryRedmineAvecOptions mng requete initOpt mngConn
    return $ fmap time_entries res
-   where requete = "/time_entries/" <> (S8.pack $ show issueid) <> ".json"
+   where requete = "/time_entries/" <> S8.pack (show issueid) <> ".json"
 
 getIssues :: RedmineMng -> ParamRest -> MaybeT IO [Issue]
 getIssues mng param = MaybeT $ do
@@ -138,9 +138,9 @@ getIssues mng param = MaybeT $ do
    where requete = "/issues.json"
 
 getIssue :: RedmineMng -> Integer -> ParamRest -> MaybeT IO Issue
-getIssue mng elemId param = do
+getIssue mng elemId param =
    fmap issue (MaybeT $ runQuery mng requete)
-   where requete = "/issues/" <> (S8.pack $ show elemId) <> ".json" <> (expandOptions param)
+   where requete = "/issues/" <> S8.pack (show elemId) <> ".json" <> expandOptions param
 
 getProjects :: RedmineMng -> MaybeT IO [Project]
 getProjects mng = MaybeT $ do
@@ -150,12 +150,12 @@ getProjects mng = MaybeT $ do
    where requete = "/projects.json"
 
 getProjectForId :: RedmineMng -> Integer -> MaybeT IO Project
-getProjectForId mng elemId = do
+getProjectForId mng elemId =
    MaybeT $ runQuery mng requete
-   where requete = (rmhost mng) <> "/projects/" <> (S8.pack $ show elemId) <> ".json"
+   where requete = rmhost mng <> "/projects/" <> S8.pack (show elemId) <> ".json"
 
 getProject :: RedmineMng -> S.ByteString -> MaybeT IO Project
-getProject mng projId = do
+getProject mng projId =
    MaybeT $ runQuery mng requete
    where requete = "/projects/" <> projId <> ".json"
 
@@ -163,18 +163,18 @@ getProject mng projId = do
 getVersions :: RedmineMng --The connection manager
             -> S.ByteString --The project
             -> MaybeT IO [Version]
-getVersions mng proj = do
+getVersions mng proj =
    fmap versions (MaybeT $ runQuery mng requete)
    where requete = "/projects/" <> proj <> "/versions.json"
 
 getVersion:: RedmineMng -> Integer -> ParamRest -> MaybeT IO Version
-getVersion mng elemId param = do
+getVersion mng elemId param =
    fmap version (MaybeT $ runQuery mng requete)
-   where requete = "/versions/" <> (S8.pack $ show elemId) <> ".json" <> (expandOptions param)
+   where requete = "/versions/" <> S8.pack (show elemId) <> ".json" <> expandOptions param
 
 getUser :: RedmineMng -> Integer -> MaybeT IO User
 getUser mng elemId =
-  do let requete = "/users/" <> (S8.pack $ show elemId) <> ".json"
+  do let requete = "/users/" <> S8.pack (show elemId) <> ".json"
      MaybeT $ runQuery mng requete
 
 instance FromJSON ObjRef where
