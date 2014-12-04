@@ -114,8 +114,8 @@ runQuery mng requete = do -- withSocketsDo $ do
 
 initOpt = Map.fromList [("offset","0"), ("limit","100")]
 
--- |The function 'getTimeEntries' fetch all the time entries.
--- |They can be filtered by spenton date using spent_on=%3E%3C2013-05-01|2013-05-31
+-- |The function 'getTimeEntries' fetches all the time entries.
+--  They can be filtered by spenton date using spent_on=%3E%3C2013-05-01|2013-05-31
 getTimeEntries :: RedmineMng -> ParamRest -> MaybeT IO [TimeEntry]
 getTimeEntries mng param = MaybeT $ do
    mngConn <- newManager tlsManagerSettings
