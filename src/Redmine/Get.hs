@@ -88,7 +88,7 @@ queryRedmineAvecOptions redmineMng req param mng = -- MaybeT IO $ withSocketsDo 
     parsedRes <- debugResult . eitherDecode . responseBody $ response
     --putStrLn $ show parsedRes
     case parsedRes of
-      Just a | 0 == longueur a -> return Nothing
+      Just a | 0 == longueur a -> return $ Just a
              | otherwise       ->
                 do let hausse = increaseQueryRange param
                    --traceM . show $ hausse
