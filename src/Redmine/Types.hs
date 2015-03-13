@@ -43,7 +43,7 @@ data Issue = Issue { id_Issue :: Integer
                    , author_Issue :: ObjRef
                    , assignedTo_Issue :: Maybe ObjRef
                    , category_Issue :: Maybe ObjRef
-                   , fixedVersion_Issue :: ObjRef
+                   , fixedVersion_Issue :: Maybe ObjRef
                    , subject_Issue :: T.Text
                    , description_Issue :: T.Text
                    , startDate_Issue :: Maybe Day
