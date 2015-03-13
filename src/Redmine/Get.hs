@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Redmine.Get ( getTimeEntries
+                   , getTimeEntry
                    , getTimeEntriesForIssue
                    , getIssue
                    , getIssues
@@ -123,6 +124,11 @@ getTimeEntries mng param = MaybeT $ do
    return $ fmap time_entries res
    where requete = "/time_entries.json"
 
+getTimeEntry :: RedmineMng -> Integer -> MaybeT IO TimeEntry
+getTimeEntry mng elemId = 
+   fmap time_entry (MaybeT $ runQuery mng requete)
+   where requete = "/time_entries/" <> S8.pack (show elemId) <> ".json"
+                
 getTimeEntriesForIssue :: RedmineMng -> Integer-> MaybeT IO [TimeEntry]
 getTimeEntriesForIssue mng issueid = MaybeT $ do
    mngConn <- newManager tlsManagerSettings
@@ -174,8 +180,8 @@ getVersion mng elemId param =
 
 getUser :: RedmineMng -> Integer -> MaybeT IO User
 getUser mng elemId =
-  do let requete = "/users/" <> S8.pack (show elemId) <> ".json"
-     MaybeT $ runQuery mng requete
+    fmap user (MaybeT $ runQuery mng requete)
+    where requete = "/users/" <> S8.pack (show elemId) <> ".json"
 
 instance FromJSON ObjRef where
   parseJSON (Object v) =
@@ -203,7 +209,7 @@ instance FromJSON Issue where
           <*> (v .: "author")
           <*> (v .:? "assigned_to")
           <*> (v .:? "category")
-          <*> (v .: "fixed_version")
+          <*> (v .:? "fixed_version")
           <*> (v .: "subject")
           <*> (v .: "description")
           <*> liftM (parseShortTime . fromMaybe "") (v .:? "start_date")
@@ -286,6 +292,9 @@ instance FromJSON Project where
 instance FromJSON TimeEntriesRsp where
   parseJSON (Object v) = TimeEntriesRsp <$> (v .: "time_entries")
 
+instance FromJSON TimeEntryRsp where
+  parseJSON (Object v) = TimeEntryRsp <$> (v .: "time_entry")
+
 instance FromJSON TimeEntry where
   parseJSON (Object v) =
     TimeEntry <$> (v .: "id")
@@ -354,6 +363,9 @@ instance FromJSON Membership where
 
 instance FromJSON UsersRsp where
   parseJSON (Object v) = UsersRsp <$> (v .: "users")
+
+instance FromJSON UserRsp where
+  parseJSON (Object v) = UserRsp <$> (v .: "user")
 
 instance FromJSON User where
   parseJSON (Object v) =
