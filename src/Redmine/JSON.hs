@@ -1,9 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Redmine.JSON where
+module Redmine.JSON
+( parseJSON
+, toJSON
+) where
 
 import Data.Aeson
 import Data.Maybe
+import Data.Time.Clock      (UTCTime)
 import Data.Time.Format (parseTime)
 import Redmine.Types
 import Redmine.Utils
@@ -13,6 +17,12 @@ import Data.Time.Calendar (Day, showGregorian)
 import System.Locale        (defaultTimeLocale)
 
 import qualified Data.Text  as T (pack, unpack)
+
+parseRHTime :: String -> Maybe UTCTime
+parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
+
+parseShortTime :: String -> Maybe Day
+parseShortTime = parseTime defaultTimeLocale "%F"
 
 instance FromJSON ObjRef where
   parseJSON (Object v) =
@@ -93,7 +103,7 @@ instance FromJSON CustomField where
     CustomField <$> (v .: "id") <*> (v .: "name") <*> (v .: "value")
 
 instance FromJSON Journal where
-  parseJSON (Object v) = 
+  parseJSON (Object v) =
     Journal <$> (v .: "id")
             <*> (v .: "user")
             <*> (v .:? "notes" .!= "")
@@ -260,7 +270,7 @@ instance ToJSON Issue where
           _watchers
           _relations
           _children
-         ) =    object  [ "issue" .= 
+         ) =    object  [ "issue" .=
     object [ -- "id" .= id',
              "project_id" .= id_ObjRef project
 --           , "tracker" .= tracker
@@ -287,7 +297,7 @@ instance ToJSON Issue where
 --           , "relations" .= relations
 --           , "children" .= children
            ]]
-  
+
 instance ToJSON Child where
   toJSON (Child id' tracker subject) =
     object [ "id" .= id'
@@ -312,7 +322,7 @@ instance ToJSON ChangeSet where
            , "comments" .= comments
            , "commited_on" .= committed_on]
 
-             
+
 instance ToJSON CustomField where
   toJSON (CustomField id' name value) =
     object ["id" .= id'
@@ -338,7 +348,7 @@ instance ToJSON Watcher where
   toJSON (Watcher id' name) =
     object [ "id" .= id'
            , "name" .= name]
-  
+
 instance ToJSON Relation where
   toJSON (Relation id' issue_id issue_to_id relation_type delay) =
     object [ "id" .= id'
