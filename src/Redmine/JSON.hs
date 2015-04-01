@@ -10,7 +10,6 @@ import Data.Maybe
 import Data.Time.Clock      (UTCTime)
 import Data.Time.Format (parseTime)
 import Redmine.Types
-import Redmine.Utils
 import Control.Applicative ((<$>), (<*>), pure)
 import Control.Monad (liftM)
 import Data.Time.Calendar (Day, showGregorian)
