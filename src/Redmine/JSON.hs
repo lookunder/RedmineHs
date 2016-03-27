@@ -7,13 +7,10 @@ module Redmine.JSON
 
 import Data.Aeson
 import Data.Maybe
-import Data.Time.Clock      (UTCTime)
-import Data.Time.Format (parseTime)
 import Redmine.Types
 import Control.Applicative ((<$>), (<*>), pure)
 import Control.Monad (liftM)
-import Data.Time.Calendar (Day, showGregorian)
-import System.Locale        (defaultTimeLocale)
+import Data.Time (Day, UTCTime, parseTime, showGregorian, defaultTimeLocale)
 
 import qualified Data.Text  as T (pack, unpack)
 
@@ -154,11 +151,11 @@ instance FromJSON VersionsRsp where
 instance FromJSON VersionRsp where
   parseJSON (Object v) = VersionRsp <$> (v .: "version")
 
-instance FromJSON Day where
-    parseJSON = withText "Day" $ \t ->
-        case parseTime defaultTimeLocale "%F" (T.unpack t) of
-          Just d -> pure d
-          _      -> fail "could not parse ISO-8601 date"
+--instance FromJSON Day where
+--    parseJSON = withText "Day" $ \t ->
+--        case parseTime defaultTimeLocale "%F" (T.unpack t) of
+--          Just d -> pure d
+--          _      -> fail "could not parse ISO-8601 date"
 
 instance FromJSON Version where
   parseJSON (Object v) =
@@ -233,8 +230,8 @@ instance FromJSON IssueStatus where
                 <*> (v .: "is_default")
                 <*> (v .: "is_closed")
 
-instance ToJSON Day where
-  toJSON = String . T.pack . showGregorian
+--instance ToJSON Day where
+--  toJSON = String . T.pack . showGregorian
 
 instance ToJSON ObjRef where
   toJSON (ObjRef id name) = object [ "id" .= id, "name" .= name]

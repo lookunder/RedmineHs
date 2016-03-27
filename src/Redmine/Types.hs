@@ -2,8 +2,7 @@
 
 module Redmine.Types where
 
-import Data.Time.Clock      (UTCTime)
-import Data.Time.Calendar (Day)
+import Data.Time      (Day, UTCTime)
 import Network.HTTP.Conduit
 import Data.Monoid
 import Data.Typeable
