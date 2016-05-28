@@ -9,16 +9,16 @@ import Data.Aeson
 import Data.Maybe
 import Redmine.Types
 import Control.Applicative ((<$>), (<*>), pure)
-import Control.Monad (liftM)
-import Data.Time (Day, UTCTime, parseTime, showGregorian, defaultTimeLocale)
+import Data.Time (Day, UTCTime, showGregorian, defaultTimeLocale)
+import Data.Time.Format (parseTimeM)
 
 import qualified Data.Text  as T (pack, unpack)
 
 parseRHTime :: String -> Maybe UTCTime
-parseRHTime = parseTime defaultTimeLocale "%FT%X%QZ"
+parseRHTime = parseTimeM True defaultTimeLocale "%FT%X%QZ"
 
 parseShortTime :: String -> Maybe Day
-parseShortTime = parseTime defaultTimeLocale "%F"
+parseShortTime = parseTimeM True defaultTimeLocale "%F"
 
 instance FromJSON ObjRef where
   parseJSON (Object v) =
@@ -48,15 +48,15 @@ instance FromJSON Issue where
           <*> (v .:? "category")
           <*> (v .:? "fixed_version")
           <*> (v .: "subject")
-          <*> liftM (fromMaybe "") (v .:? "description")
-          <*> liftM (parseShortTime . fromMaybe "") (v .:? "start_date")
-          <*> liftM (parseShortTime . fromMaybe "") (v .:? "due_date")
+          <*> (v .:? "description" .!= "")
+          <*> fmap (parseShortTime . fromMaybe "") (v .:? "start_date")
+          <*> fmap (parseShortTime . fromMaybe "") (v .:? "due_date")
           <*> (v .: "done_ratio")
           <*> (v .:? "estimated_hours")
           <*> (v .:? "spent_hours")
           <*> (v .:? "custom_fields")
-          <*> liftM parseRHTime (v .: "created_on")
-          <*> liftM parseRHTime (v .: "updated_on")
+          <*> fmap parseRHTime (v .: "created_on")
+          <*> fmap parseRHTime (v .: "updated_on")
           <*> (v .:? "journals")
           <*> (v .:? "attachements")
           <*> (v .:? "changesets")
@@ -80,14 +80,14 @@ instance FromJSON Attachement where
                 <*> (v .: "description")
                 <*> (v .: "content_url")
                 <*> (v .: "author_name")
-                <*> liftM (fromJust.parseRHTime) (v .: "created_on")
+                <*> fmap (fromJust.parseRHTime) (v .: "created_on")
 
 instance FromJSON ChangeSet where
   parseJSON (Object v) =
     ChangeSet <$> (v .: "revision")
               <*> (v .: "user")
               <*> (v .: "comments")
-              <*> liftM (fromJust.parseRHTime) (v .: "committed_on")
+              <*> fmap (fromJust.parseRHTime) (v .: "committed_on")
 
 instance FromJSON Watcher where
   parseJSON (Object v) =
@@ -96,14 +96,16 @@ instance FromJSON Watcher where
 
 instance FromJSON CustomField where
   parseJSON (Object v) =
-    CustomField <$> (v .: "id") <*> (v .: "name") <*> (v .: "value")
+    CustomField <$> (v .: "id")
+                <*> (v .: "name")
+                <*> (v .:? "value" .!= "")
 
 instance FromJSON Journal where
   parseJSON (Object v) =
     Journal <$> (v .: "id")
             <*> (v .: "user")
             <*> (v .:? "notes" .!= "")
-            <*> liftM parseRHTime (v .: "created_on")
+            <*> fmap parseRHTime (v .: "created_on")
             <*> (v .: "details")
 
 instance FromJSON Detail where
@@ -123,8 +125,8 @@ instance FromJSON Project where
             <*> (v .: "identifier")
             <*> (v .: "description")
             <*> (v .:? "custom_fields")
-            <*> liftM parseRHTime (v .: "created_on")
-            <*> liftM parseRHTime (v .: "updated_on")
+            <*> fmap parseRHTime (v .: "created_on")
+            <*> fmap parseRHTime (v .: "updated_on")
 
 instance FromJSON TimeEntriesRsp where
   parseJSON (Object v) = TimeEntriesRsp <$> (v .: "time_entries")
@@ -141,21 +143,15 @@ instance FromJSON TimeEntry where
               <*> (v .:? "activity")
               <*> (v .:? "hours")
               <*> (v .: "comments")
-              <*> liftM parseRHTime (v .: "created_on")
-              <*> liftM parseRHTime (v .: "updated_on")
-              <*> liftM (parseShortTime . fromMaybe "") (v .:? "spent_on")
+              <*> fmap parseRHTime (v .: "created_on")
+              <*> fmap parseRHTime (v .: "updated_on")
+              <*> fmap (parseShortTime . fromMaybe "") (v .:? "spent_on")
 
 instance FromJSON VersionsRsp where
   parseJSON (Object v) = VersionsRsp <$> (v .: "versions")
 
 instance FromJSON VersionRsp where
   parseJSON (Object v) = VersionRsp <$> (v .: "version")
-
---instance FromJSON Day where
---    parseJSON = withText "Day" $ \t ->
---        case parseTime defaultTimeLocale "%F" (T.unpack t) of
---          Just d -> pure d
---          _      -> fail "could not parse ISO-8601 date"
 
 instance FromJSON Version where
   parseJSON (Object v) =
@@ -166,9 +162,9 @@ instance FromJSON Version where
             <*> (v .: "status")
             <*> (v .: "sharing")
             --FIXME avoid parsing an empty string
-            <*> liftM (parseShortTime . fromMaybe "") (v .:? "due_date")
-            <*> liftM parseRHTime (v .: "created_on")
-            <*> liftM parseRHTime (v .: "updated_on")
+            <*> fmap (parseShortTime . fromMaybe "") (v .:? "due_date")
+            <*> fmap parseRHTime (v .: "created_on")
+            <*> fmap parseRHTime (v .: "updated_on")
 
 instance FromJSON Relations where
   parseJSON (Object v) = Relations <$> (v .: "relations")
@@ -207,9 +203,9 @@ instance FromJSON UserRsp where
 instance FromJSON User where
   parseJSON (Object v) =
     User <$> (v .: "lastname")
-         <*> liftM parseRHTime (v .: "created_on")
+         <*> fmap parseRHTime (v .: "created_on")
          <*> (v .: "mail")
-         <*> liftM parseRHTime (v .: "last_login_on")
+         <*> fmap parseRHTime (v .: "last_login_on")
          <*> (v .: "firstname")
          <*> (v .: "id")
 
@@ -229,9 +225,6 @@ instance FromJSON IssueStatus where
                 <*> (v .: "name")
                 <*> (v .: "is_default")
                 <*> (v .: "is_closed")
-
---instance ToJSON Day where
---  toJSON = String . T.pack . showGregorian
 
 instance ToJSON ObjRef where
   toJSON (ObjRef id name) = object [ "id" .= id, "name" .= name]
